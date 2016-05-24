@@ -1,0 +1,15 @@
+#Git Ignore Source
+
+##Intelli J
+.idea/
+.iml
+
+##Eclipse
+
+.settings
+.classpath
+.project
+
+##OS
+
+.DS_Store
