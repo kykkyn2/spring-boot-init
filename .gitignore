@@ -1,8 +1,13 @@
 #Git Ignore Source
 
 ##Intelli J
+
 .idea/
-.iml
+*.iml
+target/
+
+#보안상 확인 하고 올릴것
+application.properties
 
 ##Eclipse
 
