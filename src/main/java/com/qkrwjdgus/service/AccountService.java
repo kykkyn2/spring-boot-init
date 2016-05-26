@@ -2,6 +2,7 @@ package com.qkrwjdgus.service;
 
 import com.qkrwjdgus.model.Account;
 import com.qkrwjdgus.model.AccountDto;
+import com.qkrwjdgus.model.UserDuplicatedException;
 import com.qkrwjdgus.repository.AccountRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,12 @@ public class AccountService {
         Account account = modelMapper.map(dto, Account.class);
 
         // TODO: 2016-05-26 유효한 username 인지 판단 하기
+        String userName = dto.getUsername();
+        if (repository.findByUsername(userName) != null) {
+
+            throw new UserDuplicatedException(userName);
+        }
+
         // TODO: 2016-05-26 password 암호화
 
         Date nowDate = new Date();

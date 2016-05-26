@@ -71,6 +71,12 @@
             <version>0.7.6</version>
         </dependency>
 
+        <!-- JSON PATH -->
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+        </dependency>
+
     </dependencies>
 
 

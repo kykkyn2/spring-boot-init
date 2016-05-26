@@ -1,17 +1,25 @@
 package com.qkrwjdgus.controller;
 
 import com.nhncorp.lucy.security.xss.XssPreventer;
+import com.qkrwjdgus.commons.ErrorResponse;
 import com.qkrwjdgus.model.Account;
 import com.qkrwjdgus.model.AccountDto;
+import com.qkrwjdgus.model.UserDuplicatedException;
+import com.qkrwjdgus.repository.AccountRepository;
 import com.qkrwjdgus.service.AccountService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author PJH
@@ -25,6 +33,9 @@ public class AccountController {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private AccountRepository repository;
 
     @RequestMapping(value = "/test/{id}", method = RequestMethod.GET)
     public String setImage(@PathVariable String id) throws Exception {
@@ -40,16 +51,58 @@ public class AccountController {
     public ResponseEntity createAccount(@RequestBody @Valid AccountDto.Create create, BindingResult result) {
 
         if (result.hasErrors()) {
-            // TODO: 2016-05-25 에러 응답 본문 추가 하기
-            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setMessage(result.getFieldError().getField() + " error !! " + result.getFieldError().getDefaultMessage());
+            errorResponse.setCode("bad.request");
+
+            //return new ResponseEntity(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
 
         Account newAccount = service.createAccount(create);
+
+        //  서비스에 값이 잘 넘어왔는지 확인 하는 방법
+        //  1. 리턴 타입으로 판단.  직관적이기는 함
+        //  2. 파라미터 이용 (callback 처리) 직관적이기는 함
+        //  3. Exception 처리
 
         //return new ResponseEntity<>(newAccount, HttpStatus.OK);
         return new ResponseEntity<>(modelMapper.map(newAccount, AccountDto.Response.class), HttpStatus.CREATED);
 
     }
 
+    //  /accounts?page=0&size=20&sort=username,desc&sort=joined,desc
+    @RequestMapping(value = "/accounts", method = RequestMethod.GET)
+    public ResponseEntity getAccounts(Pageable pageable) {
+
+        Page<Account> page = repository.findAll(pageable);
+
+        //  비밀번호 같은 내용이 들어가기 때문에 response 로 변경 해서 내보내자
+        List<AccountDto.Response> content = page.getContent().parallelStream()
+                .map(account -> modelMapper.map(account, AccountDto.Response.class))
+                .collect(Collectors.toList());
+
+        PageImpl<AccountDto.Response> result = new PageImpl<>(content, pageable, page.getTotalElements());
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(UserDuplicatedException.class)
+    public ResponseEntity handleUserDuplicatedException(UserDuplicatedException e) {
+
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage("[" + e.getUsername() + "] 중복된 username 입니다.");
+        errorResponse.setCode("duplicated.username.exception");
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+    }
+
+    // TODO: 2016-05-26  streme() vs parallelStream()
+    // TODO: 2016-05-26 HATETOS
+    //  목록 구현 및 페이징 처리 api 에서는 Hateoas api 가 유리함
+    // SinglePageApp(SPA)  앵귤러 , 리엑트
+    // NoneSinglePageApp(NSPA) JSP , Thtmeleaf
 
 }

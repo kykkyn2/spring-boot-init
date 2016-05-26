@@ -23,7 +23,6 @@ public class Account {
     @Column(unique = true)
     private String username;
 
-
     //@JsonIgnore   //  무조건 안나갈 경우 JsonIgnore 사용 권장
     private String password;
 

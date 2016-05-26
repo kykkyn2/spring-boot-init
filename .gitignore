@@ -7,7 +7,7 @@
 target/
 
 #보안상 확인 하고 올릴것
-application.properties
+src/main/resources/application.properties
 
 ##Eclipse
 
