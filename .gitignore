@@ -6,9 +6,6 @@
 *.iml
 target/
 
-#보안상 확인 하고 올릴것
-src/main/resources/application.properties
-
 ##Eclipse
 
 .settings

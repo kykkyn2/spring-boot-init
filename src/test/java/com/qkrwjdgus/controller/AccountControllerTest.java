@@ -16,8 +16,9 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import java.util.Date;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -50,7 +51,7 @@ public class AccountControllerTest {
         //MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
 
         AccountDto.Create createDto = new AccountDto.Create();
-        createDto.setUsername("kykkyn22");
+        createDto.setUsername("kykkyn222");
         createDto.setPassword("password");
 
         ResultActions result = mockMvc.perform(post("/accounts")
@@ -92,6 +93,50 @@ public class AccountControllerTest {
         result.andDo(print());
         result.andExpect(status().isOk());
 
+    }
+
+    private AccountDto.Create accountCreateFixture() {
+        AccountDto.Create createDto = new AccountDto.Create();
+        createDto.setUsername("kykky");
+        createDto.setPassword("111");
+
+        return createDto;
+    }
+
+    @Test
+    public void getAccount() throws Exception {
+
+        //AccountDto.Create createDto = accountCreateFixture();
+
+        ResultActions result = mockMvc.perform(get("/accounts/1"));
+
+        result.andDo(print());
+        result.andExpect(status().isOk());
+
+    }
+
+    @Test
+    public void updateAccount() throws Exception {
+        //AccountDto.Create createDto = accountCreateFixture();
+
+        AccountDto.Update updateDto = new AccountDto.Update();
+        updateDto.setUpdated(new Date());
+        updateDto.setFullName("parkjunghyun");
+        updateDto.setPassword("passwd");
+
+
+        ResultActions result = mockMvc.perform(put("/accounts/15").contentType(MediaType.APPLICATION_JSON_UTF8).content(objectMapper.writeValueAsString(updateDto)));
+
+        result.andDo(print());
+        result.andExpect(status().isOk());
+
+    }
+
+    @Test
+    public void deleteAccount() throws Exception {
+        ResultActions result = mockMvc.perform(delete("/accounts/16"));
+        result.andDo(print());
+        result.andExpect(status().isNoContent());
     }
 
 }

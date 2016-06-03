@@ -2,8 +2,10 @@ package com.qkrwjdgus.service;
 
 import com.qkrwjdgus.model.Account;
 import com.qkrwjdgus.model.AccountDto;
+import com.qkrwjdgus.model.AccountNotFoundException;
 import com.qkrwjdgus.model.UserDuplicatedException;
 import com.qkrwjdgus.repository.AccountRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.Date;
  */
 @Service
 @Transactional
+@Slf4j
 public class AccountService {
 
     @Autowired
@@ -29,7 +32,7 @@ public class AccountService {
 
 
         //  대체 가능 -> modelMapper
-        /*
+        /*;
         Account account = new Account();
         account.setUsername(dto.getUsername());
         account.setPassword(dto.getPassword());
@@ -55,5 +58,32 @@ public class AccountService {
         //  JPA 처리 후 리턴
         return repository.save(account);
 
+    }
+
+    public Account updateAccount(Long id, AccountDto.Update updateDto) {
+
+        Account account = getAccount(id);
+
+        account.setPassword(updateDto.getPassword());
+        account.setFullName(updateDto.getFullName());
+        account.setUpdated(new Date());
+
+        return repository.save(account);
+    }
+
+    public Account getAccount(Long id) {
+
+        Account account = repository.findOne(id);
+
+        if (account == null) {
+            throw new AccountNotFoundException(id);
+        }
+
+        return account;
+
+    }
+
+    public void deleteAccount(Long id) {
+        repository.delete(getAccount(id));
     }
 }

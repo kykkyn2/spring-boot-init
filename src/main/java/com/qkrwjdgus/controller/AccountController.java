@@ -4,6 +4,7 @@ import com.nhncorp.lucy.security.xss.XssPreventer;
 import com.qkrwjdgus.commons.ErrorResponse;
 import com.qkrwjdgus.model.Account;
 import com.qkrwjdgus.model.AccountDto;
+import com.qkrwjdgus.model.AccountNotFoundException;
 import com.qkrwjdgus.model.UserDuplicatedException;
 import com.qkrwjdgus.repository.AccountRepository;
 import com.qkrwjdgus.service.AccountService;
@@ -88,6 +89,51 @@ public class AccountController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+
+    @RequestMapping(value = "/accounts/{id}", method = RequestMethod.GET)
+    public ResponseEntity getAccount(@PathVariable Long id) {
+
+        Account account = service.getAccount(id);
+        AccountDto.Response result = modelMapper.map(account, AccountDto.Response.class);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+
+    }
+
+    //  전체 업데이트 PUT
+    //
+    //  부분 업데이트 PATCH
+    @RequestMapping(value = "/accounts/{id}", method = RequestMethod.PUT)
+    public ResponseEntity updateAccount(@PathVariable Long id, @RequestBody @Valid AccountDto.Update updateDto, BindingResult result) {
+        if (result.hasErrors()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        Account updateAccount = service.updateAccount(id, updateDto);
+        return new ResponseEntity<>(modelMapper.map(updateAccount, AccountDto.Response.class), HttpStatus.OK);
+
+    }
+
+
+    //  삭제 API
+    @RequestMapping(value = "/accounts/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity deleteAccount(@PathVariable Long id) {
+        service.deleteAccount(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity handleAccountNotFoundException(AccountNotFoundException e) {
+
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage("[" + e.getId() + "] 에 해당하는 계정이 없습니다.");
+        errorResponse.setCode("account.not.found.exception");
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
+    }
+
+
     @ExceptionHandler(UserDuplicatedException.class)
     public ResponseEntity handleUserDuplicatedException(UserDuplicatedException e) {
 
@@ -101,6 +147,7 @@ public class AccountController {
 
     // TODO: 2016-05-26  streme() vs parallelStream()
     // TODO: 2016-05-26 HATETOS
+    // TODO: 2016-06-02 SPA vs NSPA
     //  목록 구현 및 페이징 처리 api 에서는 Hateoas api 가 유리함
     // SinglePageApp(SPA)  앵귤러 , 리엑트
     // NoneSinglePageApp(NSPA) JSP , Thtmeleaf
